@@ -6,7 +6,7 @@ import { Trash2, Edit3, Plus, ExternalLink } from "lucide-react";
 import fs from "fs";
 import path from "path";
 import AdminAccountsClient from "./AdminAccountsClient"; // Tách logic Client ra file riêng nếu cần hoặc gộp chung
-
+export const dynamic = 'force-dynamic';
 const prisma = new PrismaClient();
 
 export default async function AdminAccountsPage() {
