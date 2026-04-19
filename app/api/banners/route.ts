@@ -1,11 +1,19 @@
-import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
+// Sử dụng instance dùng chung từ lib/prisma
+import prisma from "@/lib/prisma"; 
 
-const prisma = new PrismaClient();
+// QUAN TRỌNG: Thêm dòng này để Vercel không render tĩnh file này lúc build
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const banners = await prisma.banner.findMany({ orderBy: { createdAt: 'desc' } });
-  return NextResponse.json(banners);
+  try {
+    const banners = await prisma.banner.findMany({ 
+      orderBy: { createdAt: 'desc' } 
+    });
+    return NextResponse.json(banners);
+  } catch (error) {
+    return NextResponse.json({ error: "Lỗi tải Banner" }, { status: 500 });
+  }
 }
 
 export async function POST(req: Request) {

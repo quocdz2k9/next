@@ -1,14 +1,20 @@
-import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
+// 1. Sử dụng instance dùng chung từ lib/prisma (BẮT BUỘC để fix lỗi outdated client)
+import prisma from "@/lib/prisma"; 
 
-const prisma = new PrismaClient();
+// 2. Ép buộc chế độ dynamic để bỏ qua việc "thăm dò" DB lúc build trên Vercel
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const games = await prisma.game.findMany({ 
-    include: { _count: { select: { accounts: true } } },
-    orderBy: { createdAt: 'desc' } 
-  });
-  return NextResponse.json(games);
+  try {
+    const games = await prisma.game.findMany({
+      include: { _count: { select: { accounts: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+    return NextResponse.json(games);
+  } catch (error) {
+    return NextResponse.json({ error: "Lỗi tải danh mục Game" }, { status: 500 });
+  }
 }
 
 export async function POST(req: Request) {
@@ -17,7 +23,7 @@ export async function POST(req: Request) {
     const newGame = await prisma.game.create({
       data: {
         name: body.name,
-        images: body.images, // Mảng các đường dẫn ảnh
+        images: body.images, 
       },
     });
     return NextResponse.json(newGame);
@@ -26,8 +32,6 @@ export async function POST(req: Request) {
   }
 }
 
-// ... (giữ nguyên phần GET và POST cũ)
-
 export async function DELETE(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -35,15 +39,17 @@ export async function DELETE(req: Request) {
 
     if (!id) return NextResponse.json({ error: "Thiếu ID game" }, { status: 400 });
 
-    // Xóa game (Prisma sẽ tự động xử lý nếu bạn có thiết lập OnDelete Cascade, 
-    // hoặc bạn phải xóa Accounts liên quan trước nếu không thiết lập)
     await prisma.game.delete({
       where: { id: Number(id) },
     });
 
     return NextResponse.json({ message: "Xóa thành công" });
   } catch (error) {
-    return NextResponse.json({ error: "Không thể xóa game vì có tài khoản đang liên kết" }, { status: 500 });
+    // Trả về lỗi chi tiết hơn nếu có ràng buộc khóa ngoại (Foreign Key)
+    return NextResponse.json(
+      { error: "Không thể xóa game vì có tài khoản đang liên kết" }, 
+      { status: 500 }
+    );
   }
 }
 
