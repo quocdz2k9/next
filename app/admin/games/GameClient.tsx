@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { X, UploadCloud, Plus, Trash2, Loader2, Gamepad2 } from "lucide-react";
+import { X, UploadCloud, Plus, Trash2, Loader2, Gamepad2, Image as ImageIcon } from "lucide-react";
 
 export default function GameClient({ initialGames }: { initialGames: any[] }) {
   const [showForm, setShowForm] = useState(false);
