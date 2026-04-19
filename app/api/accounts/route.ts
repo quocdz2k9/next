@@ -1,7 +1,10 @@
-import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
+// 1. Dùng instance prisma dùng chung (tạo file lib/prisma.ts như hướng dẫn dưới)
+// Nếu chưa tạo lib/prisma.ts, tạm thời dùng import từ một nơi quản lý tập trung
+import prisma from "@/lib/prisma"; 
 
-const prisma = new PrismaClient();
+// 2. Ép Next.js không render tĩnh API này lúc build để tránh lỗi kết nối DB
+export const dynamic = 'force-dynamic';
 
 // TẠO HOẶC CẬP NHẬT TÀI KHOẢN
 export async function POST(req: Request) {
@@ -10,7 +13,6 @@ export async function POST(req: Request) {
     const { id, ...data } = body;
 
     if (id) {
-      // Nếu có ID thì thực hiện UPDATE
       const updated = await prisma.account.update({
         where: { id: Number(id) },
         data: {
@@ -25,7 +27,6 @@ export async function POST(req: Request) {
       });
       return NextResponse.json(updated);
     } else {
-      // Nếu không có ID thì tạo MỚI
       const newAccount = await prisma.account.create({
         data: {
           name: data.name,
@@ -59,6 +60,7 @@ export async function DELETE(req: Request) {
   }
 }
 
+// LẤY DANH SÁCH
 export async function GET() {
   try {
     const accounts = await prisma.account.findMany({
