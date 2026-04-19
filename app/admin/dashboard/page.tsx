@@ -9,6 +9,7 @@ import {
   Image as ImageIcon 
 } from "lucide-react";
 import Link from "next/link";
+export const dynamic = 'force-dynamic';
 
 const prisma = new PrismaClient();
 
