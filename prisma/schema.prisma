@@ -12,3 +12,38 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+model Game {
+  id        Int       @id @default(autoincrement())
+  name      String
+  images    String[]
+  accounts  Account[] // Mối quan hệ với Account
+  createdAt DateTime  @default(now())
+}
+
+model Account {
+  id          Int      @id @default(autoincrement())
+  gameId      Int      // Khóa ngoại liên kết tới Game
+  game        Game     @relation(fields: [gameId], references: [id])
+  name        String   // Tiêu đề ACC (vd: Acc trắng thông tin, có skin hiếm...)
+  images      String[] // Mảng nhiều ảnh cho 1 ACC
+  priceNum    Int      // Giá số để tính toán (vd: 100000)
+  priceText   String   // Giá hiển thị (vd: 100k)
+  description String   @db.Text
+  status      String   @default("conhang") // conhang, hethang
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Banner {
+  id        Int      @id @default(autoincrement())
+  imageUrl  String
+  title     String?
+  createdAt DateTime @default(now())
+}
+model Setting {
+  id          Int      @id @default(1)
+  logoUrl     String?  // Để dạng optional (có thể null) hoặc String đơn thuần
+  footerLines String[]
+  updatedAt   DateTime @updatedAt
+}
+

@@ -1,65 +1,122 @@
-import Image from "next/image";
+import { PrismaClient } from "@prisma/client";
+import { Suspense } from "react";
+import BannerSwiper from "@/components/BannerSwiper";
+import Footer from "@/components/Footer";
+import Header from "@/components/Header";
+import SearchInput from "@/components/SearchInput";
+import { Search } from "lucide-react";
+import Link from "next/link";
 
-export default function Home() {
+const prisma = new PrismaClient();
+
+// 1. Component hiển thị danh sách Game
+async function ContentSection({ query }: { query: string }) {
+  const [banners, games] = await Promise.all([
+    prisma.banner.findMany({ orderBy: { createdAt: 'desc' } }),
+    prisma.game.findMany({
+      where: {
+        name: { contains: query, mode: 'insensitive' },
+      },
+      include: {
+        _count: {
+          select: { accounts: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+  ]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      {!query && banners.length > 0 && <BannerSwiper banners={banners} />}
+
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white uppercase tracking-wider">
+            {query ? `Kết quả cho: "${query}"` : "Danh mục Game"}
+          </h2>
+          <div className="h-1 w-10 bg-[#f58220] mt-1"></div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <SearchInput defaultValue={query} />
+      </div>
+
+      {games.length > 0 ? (
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6">
+          {games.map((game) => (
+            <Link 
+              href={`/game/${game.id}`} 
+              key={game.id} 
+              className="group flex flex-col items-center"
+            >
+              <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all group-hover:shadow-md group-hover:-translate-y-1">
+                <img
+                  src={game.images[0] || "https://via.placeholder.com/400x400"}
+                  alt={game.name}
+                  className="object-cover w-full h-full"
+                />
+                <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-sm text-[10px] text-white px-2 py-0.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                  {game._count.accounts} ACC
+                </div>
+              </div>
+              <div className="mt-3 text-center w-full">
+                <h2 className="text-[11px] sm:text-[13px] font-semibold text-zinc-800 dark:text-zinc-200 truncate px-1 group-hover:text-[#f58220] transition-colors">
+                  {game.name}
+                </h2>
+              </div>
+            </Link>
+          ))}
         </div>
-      </main>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="bg-zinc-100 dark:bg-zinc-900 p-6 rounded-full mb-4">
+            <Search size={40} className="text-zinc-400" />
+          </div>
+          <h3 className="text-lg font-bold text-zinc-900 dark:text-white">Không tìm thấy game nào</h3>
+          <p className="text-zinc-500 text-sm mt-1">Vui lòng thử lại với từ khóa khác.</p>
+        </div>
+      )}
+    </>
+  );
+}
+
+// 2. Định nghĩa LoadingSkeleton (Cái này đang thiếu dẫn đến lỗi của bạn)
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-10">
+      {/* Skeleton cho danh sách game */}
+      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6 pt-10">
+        {[...Array(12)].map((_, i) => (
+          <div key={i} className="flex flex-col items-center">
+            <div className="aspect-square w-full bg-zinc-200 dark:bg-zinc-800 rounded-2xl animate-pulse" />
+            <div className="mt-3 w-3/4 h-3 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
+
+// 3. Trang chủ chính
+export default async function Home({ 
+  searchParams 
+}: { 
+  searchParams: Promise<{ q?: string }> 
+}) {
+  const { q = "" } = await searchParams;
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-black font-sans flex flex-col">
+      <main className="max-w-[1200px] mx-auto w-full p-4 sm:p-8 flex-1">
+        {/* Đã gắn Header */}
+        <Header />
+
+        <Suspense key={q} fallback={<LoadingSkeleton />}>
+          <ContentSection query={q} />
+        </Suspense>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
