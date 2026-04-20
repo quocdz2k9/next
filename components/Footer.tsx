@@ -11,56 +11,66 @@ export default function Footer() {
   const [data, setData] = useState<SettingsData | null>(null);
 
   useEffect(() => {
-    // 1. Script chặn copy, chuột phải và kéo thả ảnh
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Chặn Ctrl+C, Ctrl+U (xem code), Ctrl+S, F12
       if (
-        (e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 's' || e.key === 'a')) || 
-        e.key === 'F12'
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+        (e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'h' || e.key === 'a' || e.key === 'c'))
       ) {
         e.preventDefault();
+        return false;
       }
     };
+
+    const devToolsChecker = setInterval(() => {
+      const startTime = performance.now();
+      debugger;
+      const endTime = performance.now();
+      if (endTime - startTime > 100) {
+        window.location.reload();
+      }
+    }, 1000);
+
+    const consoleClearer = setInterval(() => {
+      console.clear();
+    }, 2000);
 
     document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("keydown", handleKeyDown);
 
-    // 2. Tối ưu load: Fetch dữ liệu ngay lập tức
-    fetch("/api/settings", { next: { revalidate: 60 } }) // Cache nhẹ để load mượt hơn
+    fetch("/api/settings", { next: { revalidate: 60 } })
       .then((res) => res.json())
       .then((json) => setData(json))
-      .catch((err) => console.error("Lỗi lấy dữ liệu Footer:", err));
+      .catch((err) => console.error(err));
 
     return () => {
       document.removeEventListener("contextmenu", handleContextMenu);
       document.removeEventListener("keydown", handleKeyDown);
+      clearInterval(devToolsChecker);
+      clearInterval(consoleClearer);
     };
   }, []);
 
-  // Tránh bị "giật" giao diện bằng cách giữ chiều cao cố định khi đang load
   if (!data) return <div className="w-full h-64 bg-[#222]"></div>;
 
   return (
-    <footer 
+    <footer
       className="w-full bg-[#222] text-zinc-400 py-12 px-6 mt-20 font-sans border-t border-white/5 select-none"
-      style={{ userSelect: 'none', WebkitUserSelect: 'none' }} // Chặn bôi đen chữ bằng CSS
+      style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
     >
       <div className="max-w-6xl mx-auto flex flex-col items-center text-center">
-        
-        {/* Logo - Chặn kéo thả ảnh */}
         <div className="mb-8">
           {data.logoUrl && (
             <img
               src={data.logoUrl}
               alt="Footer Logo"
-              onDragStart={(e) => e.preventDefault()} // Chặn kéo ảnh ra ngoài
+              onDragStart={(e) => e.preventDefault()}
               className="h-12 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity pointer-events-none"
             />
           )}
         </div>
 
-        {/* Thông tin công ty */}
         <div className="space-y-2 text-xs md:text-sm leading-relaxed max-w-3xl">
           {data.footerLines && data.footerLines.map((line: string, i: number) => (
             <p key={i} className="hover:text-zinc-200 transition-colors font-medium">
@@ -71,7 +81,6 @@ export default function Footer() {
 
         <hr className="w-20 border-[#f58220]/30 my-8" />
 
-        {/* Bản quyền & Designer Info */}
         <div className="w-full flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-bold uppercase tracking-widest">
           <p className="text-zinc-500 italic">
             Website Được Thiết Kế Bởi{" "}
