@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 interface SettingsData {
   logoUrl: string;
   footerLines: string[];
 }
 
-export default function Footer() {
-  const [data, setData] = useState<SettingsData | null>(null);
-
+export default function Footer({ initialData }: { initialData: SettingsData }) {
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -39,11 +37,6 @@ export default function Footer() {
     document.addEventListener("contextmenu", handleContextMenu);
     document.addEventListener("keydown", handleKeyDown);
 
-    fetch("/api/settings", { next: { revalidate: 60 } })
-      .then((res) => res.json())
-      .then((json) => setData(json))
-      .catch((err) => console.error(err));
-
     return () => {
       document.removeEventListener("contextmenu", handleContextMenu);
       document.removeEventListener("keydown", handleKeyDown);
@@ -52,18 +45,16 @@ export default function Footer() {
     };
   }, []);
 
-  if (!data) return <div className="w-full h-64 bg-[#222]"></div>;
-
   return (
     <footer
-      className="w-full bg-[#222] text-zinc-400 py-12 px-6 mt-20 font-sans border-t border-white/5 select-none"
+      className="w-full bg-[#222] text-zinc-400 py-12 px-6 font-sans border-t border-white/5 select-none"
       style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
     >
       <div className="max-w-6xl mx-auto flex flex-col items-center text-center">
         <div className="mb-8">
-          {data.logoUrl && (
+          {initialData.logoUrl && (
             <img
-              src={data.logoUrl}
+              src={initialData.logoUrl}
               alt="Footer Logo"
               onDragStart={(e) => e.preventDefault()}
               className="h-12 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity pointer-events-none"
@@ -72,7 +63,7 @@ export default function Footer() {
         </div>
 
         <div className="space-y-2 text-xs md:text-sm leading-relaxed max-w-3xl">
-          {data.footerLines && data.footerLines.map((line: string, i: number) => (
+          {initialData.footerLines.map((line: string, i: number) => (
             <p key={i} className="hover:text-zinc-200 transition-colors font-medium">
               {line}
             </p>
