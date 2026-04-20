@@ -9,6 +9,7 @@ interface SettingsData {
 
 export default function Footer({ initialData }: { initialData: SettingsData }) {
   useEffect(() => {
+    // Chặn F12 và bảo mật (Chỉ chạy ở Client)
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -45,26 +46,27 @@ export default function Footer({ initialData }: { initialData: SettingsData }) {
     };
   }, []);
 
+  // Render thẳng bằng initialData từ server truyền xuống, không dùng state
   return (
     <footer
       className="w-full bg-[#222] text-zinc-400 py-12 px-6 font-sans border-t border-white/5 select-none"
       style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
     >
       <div className="max-w-6xl mx-auto flex flex-col items-center text-center">
-        <div className="mb-8">
+        <div className="mb-8 min-h-[48px]">
           {initialData.logoUrl && (
             <img
               src={initialData.logoUrl}
               alt="Footer Logo"
               onDragStart={(e) => e.preventDefault()}
-              className="h-12 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity pointer-events-none"
+              className="h-12 w-auto object-contain opacity-90 pointer-events-none"
             />
           )}
         </div>
 
         <div className="space-y-2 text-xs md:text-sm leading-relaxed max-w-3xl">
           {initialData.footerLines.map((line: string, i: number) => (
-            <p key={i} className="hover:text-zinc-200 transition-colors font-medium">
+            <p key={i} className="font-medium">
               {line}
             </p>
           ))}
@@ -86,9 +88,9 @@ export default function Footer({ initialData }: { initialData: SettingsData }) {
           </p>
 
           <div className="flex gap-8">
-            <a href="#" className="hover:text-[#f58220] transition-colors">Hỗ trợ</a>
-            <a href="#" className="hover:text-[#f58220] transition-colors">Điều khoản</a>
-            <a href="#" className="hover:text-[#f58220] transition-colors">Bảo mật</a>
+            <span className="cursor-default hover:text-[#f58220] transition-colors">Hỗ trợ</span>
+            <span className="cursor-default hover:text-[#f58220] transition-colors">Điều khoản</span>
+            <span className="cursor-default hover:text-[#f58220] transition-colors">Bảo mật</span>
           </div>
         </div>
       </div>
