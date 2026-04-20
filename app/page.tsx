@@ -27,11 +27,10 @@ async function ContentSection({ query }: { query: string }) {
   ]);
 
   return (
-    /* Thêm hiệu ứng animate-in fade-in để lúc hiện data nhìn mượt, không bị khựng */
     <div className="animate-in fade-in duration-500">
       {!query && banners.length > 0 && <BannerSwiper banners={banners} />}
 
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 mt-8">
         <div>
           <h2 className="text-xl font-bold text-zinc-900 dark:text-white uppercase tracking-wider">
             {query ? `Kết quả cho: "${query}"` : "Danh mục Game"}
@@ -44,7 +43,6 @@ async function ContentSection({ query }: { query: string }) {
       {games.length > 0 ? (
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6">
           {games.map((game) => (
-            /* Link bọc toàn bộ item giúp vùng bấm cực rộng, ấn đâu cũng được */
             <Link
               href={`/game/${game.id}`}
               key={game.id}
@@ -61,7 +59,6 @@ async function ContentSection({ query }: { query: string }) {
                 </div>
               </div>
               
-              {/* Tiêu đề nằm trong cùng thẻ Link nên ấn vào chữ cũng nhảy trang */}
               <div className="mt-3 text-center w-full">
                 <h2 className="text-[11px] sm:text-[13px] font-semibold text-zinc-800 dark:text-zinc-200 truncate px-1 group-hover:text-[#f58220] transition-colors">
                   {game.name}
@@ -83,11 +80,24 @@ async function ContentSection({ query }: { query: string }) {
   );
 }
 
-// 2. Định nghĩa LoadingSkeleton
+// 2. Định nghĩa LoadingSkeleton có thêm Banner
 function LoadingSkeleton() {
   return (
-    <div className="space-y-10">
-      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6 pt-10">
+    <div className="space-y-8">
+      {/* Skeleton cho Banner (Chỉ hiện ở trang chủ, không hiện khi search) */}
+      <div className="w-full aspect-[16/9] md:aspect-[21/9] bg-zinc-200 dark:bg-zinc-800 rounded-3xl animate-pulse" />
+
+      {/* Skeleton cho phần Tiêu đề & Search */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-2">
+          <div className="h-6 w-40 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+          <div className="h-1 w-10 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+        </div>
+        <div className="h-10 w-full md:w-64 bg-zinc-200 dark:bg-zinc-800 rounded-xl animate-pulse" />
+      </div>
+
+      {/* Skeleton cho danh sách game */}
+      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6">
         {[...Array(12)].map((_, i) => (
           <div key={i} className="flex flex-col items-center">
             <div className="aspect-square w-full bg-zinc-200 dark:bg-zinc-800 rounded-2xl animate-pulse" />
@@ -111,6 +121,7 @@ export default async function Home({
     <div className="min-h-screen bg-white dark:bg-black font-sans flex flex-col">
       <main className="max-w-[1200px] mx-auto w-full p-4 sm:p-8 flex-1">
         <Header />
+        {/* Suspense sẽ hiển thị LoadingSkeleton bao gồm cả banner và game */}
         <Suspense key={q} fallback={<LoadingSkeleton />}>
           <ContentSection query={q} />
         </Suspense>
