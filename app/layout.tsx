@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import Footer from "@/components/Footer";
 import { PrismaClient } from "@prisma/client";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 // Đưa ra ngoài để dùng chung kết nối (Singleton)
 const prisma = new PrismaClient();
@@ -40,6 +41,8 @@ export default async function RootLayout({
         
         {/* Truyền data đã lấy từ server xuống */}
         <Footer initialData={footerData} />
+
+        <SpeedInsights />
 
         <Toaster position="top-right" richColors expand={false} closeButton />
       </body>
